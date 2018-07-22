@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - EarnZY</title>
+    <link rel="stylesheet" href="app.css">
+    <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,400i,700,700i,600,600i">
+
+</head>
+
+<body>
+    <nav class="navbar navbar-light navbar-expand-lg fixed-top navbar-dark bg-dark clean-navbar">
+        <div class="container">
+            <!-- <li class="nav-item" role="presentation"> -->
+            <a class="nav-link active" style="color: white" onclick="document.getElementById('pointsAvail').style.display='block'">Spend Points</a>
+            <!-- </li> -->
+            <div class="" id="navcol-1">
+                <ul class="nav navbar-nav ml-auto">
+
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" href="index.html">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="page payment-page">
+        <section class="clean-block payment-form dark">
+            <br>
+            <br>
+            <br>
+            <div class="container">
+                <form>
+                    <div class="container">
+                        <div class="form-group">
+                            <label for="balance">Current Balance</label>
+                            <input class="form-control item username" type="text" readonly placeholder="Value" id="currentBalance">
+                        </div>
+                        <div class="form-group">
+                            <label for="Amount">Enter amount</label>
+                            <input class="form-control Amount" id="amount" placeholder="Enter amount" type="number" value="">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-success btn-block submitBtn" id="proceed" type="button">Purchase</button>
+                        </div>
+
+                    </div>
+                </form>
+                <div id="pointsAvail" class="modal">
+                    <form class="modal-content animate">
+
+                        <div class="container">
+                            <div class="form-group">
+                                <label for="balance">Points avalaible</label>
+                                <input class="form-control item username" type="text" readonly id="pointsAvailable">
+                            </div>
+                            <div class="form-group">
+                                <label for="Amount">Enter amount</label>
+                                <input class="form-control Amount" id="numPoints" placeholder="Enter amount" type="number" value="">ZAR
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-success btn-block submitBtn" id="usePoints" type="button">Purchase</button>
+                            </div>
+                    </form>
+                    </div>
+
+
+
+
+        </section>
+    </main>
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.0/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/jquery/theme.js"></script>
+    <script>
+
+        // var list = document.querySelector('#list');
+        let balance = document.getElementById('currentBalance')
+        let avalaiblePt = document.getElementById('pointsAvailable')
+        let numPoints = document.getElementById('numPoints')
+
+
+        var amounts = document.querySelector('#amount');
+        var spendPoints = document.querySelector('#usePoints')
+        var proceed = document.querySelector('#proceed');
+        var aut = 'token ' + localStorage.getItem('token');
+        var email = localStorage.getItem('email')
+        console.log(aut);
+        console.log(email);
+
+        function selectedvalue() {
+            var amountValue = (amounts.value) * 0.01;
+            var currencyValue = "ZAR";
+            var queryObj = {
+                amount: amountValue.toFixed(0),
+                currency: currencyValue
+            }
+            console.log(JSON.stringify(queryObj))
+            $.ajax({
+                url: 'https://api.rehive.com/3/transactions/credit/',
+                type: 'POST', // <<- the method that we using
+                data: JSON.stringify(queryObj), // <<- JSON of our request obj
+                headers: {
+                    "Content-Type": 'application/json',
+                    "Authorization": aut
+                },
+                fail: function (xhr, textStatus, errorThrown) {
+
+                    console.log(errorThrown, textStatus, xhr); //  <<- log any http errors to the console
+                    return false;
+                }
+            }).done(function (results) {
+
+                console.log(results);
+
+            });
+        };
+
+        function sendToflash() {
+            var amountValue = amounts.value;
+            // var accontValue = account.value;
+            // var listValue = list.value;
+            var flashObj = {
+                amount: amountValue,
+                email: email
+            }
+            console.log(JSON.stringify(flashObj))
+            $.ajax({
+                url: 'https://flashbackend.herokuapp.com/account',
+                type: 'POST', // <<- the method that we using
+                data: JSON.stringify(flashObj), // <<- JSON of our request obj
+                headers: {
+                    "Content-Type": 'application/json',
+                    "Authorization": aut
+                },
+                fail: function (xhr, textStatus, errorThrown) {
+
+                    console.log(errorThrown, textStatus, xhr); //  <<- log any http errors to the console
+                    return false;
+                }
+            }).done(function (results) {
+
+                console.log(results);
+
+            });
+        };
+
+        proceed.addEventListener('click', function () {
+            selectedvalue();
+            sendToflash();
+            traderBalance();
+
+        })
+
+        //Deduct points
+        spendPoints.addEventListener('click', () => {
+            var debitUser = {
+
+                amount: numPoints.value,
+                currency: "ZAR",
+
+            }
+            $.ajax({
+                url: 'https://api.rehive.com/3/transactions/debit/', // "http://localhost:3001/login", // <<- ScanZone API token service
+                type: 'POST', // <<- the method that we using
+                data: JSON.stringify(debitUser),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'token ' + localStorage.getItem('token')
+                },
+
+                fail: function (xhr, textStatus, errorThrown) {
+
+                    console.log(errorThrown, textStatus, xhr); //  <<- log any http errors to the console
+                    return false;
+                }
+            }).done(function (results, textStatus, xhr, auth) {
+                console.log(results);
+                //  self.messageBox("Purchased successfully")
+
+                if (results.status == "success") {
+
+                }
+            });
+            pointsLeft();
+        })
+
+        //Get Avalable points
+        var pointsLeft = () => {
+            $.ajax({
+                url: 'https://api.rehive.com/3/transactions/totals/', // "http://localhost:3001/login", // <<- ScanZone API token service
+                type: 'GET', // <<- the method that we using
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'token ' + localStorage.getItem('token')
+                },
+
+                fail: function (xhr, textStatus, errorThrown) {
+
+                    console.log(errorThrown, textStatus, xhr); //  <<- log any http errors to the console
+                    return false;
+                }
+            }).done(function (results, textStatus, xhr, auth) {
+
+                if (results.status == "success") {
+                    //set token in local storage
+                    avalaiblePt.value = results.data.amount
+
+                    // localStorage.setItem('Curr', results.data.user.currency.code);
+
+
+                    // localStorage.setItem('username', results.username);
+
+                }
+            });
+        }
+        pointsLeft();
+
+        //Getting trader balance
+        let obj = {
+            email: email
+        }
+        var traderBalance = () => {
+            $.ajax({
+                url: 'https://flashbackend.herokuapp.com/account',
+                type: 'POST', // <<- the method that we using
+                data: JSON.stringify(obj), // <<- JSON of our request obj
+                headers: {
+                    "Content-Type": 'application/json',
+                    "Authorization": aut
+                },
+                fail: function (xhr, textStatus, errorThrown) {
+
+                    console.log(errorThrown, textStatus, xhr); //  <<- log any http errors to the console
+                    return false;
+                }
+            }).done(function (results) {
+
+                balance.value = results.amount
+
+            });
+        }
+        traderBalance();
+        // Get the modal
+        var modal = document.getElementById('pointsAvail');
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
