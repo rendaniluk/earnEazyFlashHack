@@ -155,7 +155,7 @@
             selectedvalue();
             sendToflash();
             traderBalance();
-
+            pointsLeft();
         })
 
         //Deduct points
@@ -194,11 +194,12 @@
         //Get Avalable points
         var pointsLeft = () => {
             $.ajax({
-                url: 'https://api.rehive.com/3/transactions/totals/', // "http://localhost:3001/login", // <<- ScanZone API token service
+                url: 'https://api.rehive.com/3/accounts/', // "http://localhost:3001/login", // <<- ScanZone API token service
                 type: 'GET', // <<- the method that we using
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'token ' + localStorage.getItem('token')
+                    'Authorization': 'token ' + localStorage.getItem('token'),
+                    'refernce': 'ZAR'
                 },
 
                 fail: function (xhr, textStatus, errorThrown) {
@@ -207,11 +208,11 @@
                     return false;
                 }
             }).done(function (results, textStatus, xhr, auth) {
+                console.log(results.data.results[0].currencies[0].available_balance)
 
                 if (results.status == "success") {
                     //set token in local storage
-                    avalaiblePt.value = results.data.amount
-
+                    avalaiblePt.value = results.data.results[0].currencies[0].available_balance;
                     // localStorage.setItem('Curr', results.data.user.currency.code);
 
 
@@ -247,6 +248,7 @@
             });
         }
         traderBalance();
+        pointsLeft();
         // Get the modal
         var modal = document.getElementById('pointsAvail');
 
